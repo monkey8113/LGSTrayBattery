@@ -148,7 +148,7 @@ namespace LGSTrayCore.Managers
             // Prioritize charging state updates
             if (updateMessage.IsCharging)
             {
-                _deviceEventBus.Publish(updateMessage, priority: true);
+                _deviceEventBus.Publish(updateMessage);
             }
             else
             {

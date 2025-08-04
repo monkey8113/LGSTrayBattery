@@ -263,3 +263,4 @@ namespace LGSTrayHID
                IsCharging == other.IsCharging;
     }
 }
+}

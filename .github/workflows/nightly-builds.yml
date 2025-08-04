@@ -5,14 +5,12 @@ on:
 
 jobs:
   build:
-    runs-on: windows-2022  # Explicitly using Windows Server 2022 to avoid future migration issues
-
+    runs-on: windows-latest
     steps:
     - name: Checkout code
-      uses: actions/checkout@v4  # Updated to latest version
-
+      uses: actions/checkout@v4
     - name: Setup .NET 8
-      uses: actions/setup-dotnet@v4  # Updated to latest version
+      uses: actions/setup-dotnet@v4
       with:
         dotnet-version: 8.x
 

@@ -31,46 +31,36 @@ namespace LGSTrayHID.Features
         }
 
         public static async Task<BatteryUpdateReturn?> GetBatteryAsync(HidppDevice device)
-{
-    Hidpp20 buffer = new byte[7] { 0x10, device.DeviceIdx, device.FeatureMap[0x1001], 0x00 | HidppDevices.SW_ID, 0x00, 0x00, 0x00 };
-    Hidpp20 ret = await device.Parent.WriteRead20(device.Parent.DevShort, buffer);
+        {
+            Hidpp20 buffer = new byte[7] { 0x10, device.DeviceIdx, device.FeatureMap[0x1001], 0x00 | HidppDevices.SW_ID, 0x00, 0x00, 0x00 };
+            Hidpp20 ret = await device.Parent.WriteRead20(device.Parent.DevShort, buffer);
 
-    if (ret.Length == 0) { return null; }
+            if (ret.Length == 0) { return null; }
 
-    int mv = (ret.GetParam(0) << 8) + ret.GetParam(1);
-    double batPercent = LookupBatPercent(mv);
-    byte flags = ret.GetParam(2);
+            int mv = (ret.GetParam(0) << 8) + ret.GetParam(1);
+            double batPercent = LookupBatPercent(mv);
+            byte flags = ret.GetParam(2);
 
-    var (status, isCharging) = (flags & 0x80) > 0 
-        ? GetChargingStatusFromFlags(flags)
-        : (PowerSupplyStatus.Discharging, false);
+            var (status, isCharging) = (flags & 0x80) > 0 
+                ? GetChargingStatusFromFlags(flags)
+                : (PowerSupplyStatus.Discharging, false);
 
-    return new BatteryUpdateReturn(
-        (int)batPercent,
-        status,
-        mv,
-        isCharging
-    );
-}
+            return new BatteryUpdateReturn(
+                (int)batPercent,
+                status,
+                mv,
+                isCharging
+            );
+        }
 
-private static (PowerSupplyStatus status, bool isCharging) GetChargingStatusFromFlags(byte flags)
-{
-    return (flags & 0x07) switch
-    {
-        0 => (PowerSupplyStatus.Charging, true),
-        1 => (PowerSupplyStatus.Full, true),
-        2 => (PowerSupplyStatus.NotCharging, false),
-        _ => (PowerSupplyStatus.Unknown, false)
-    };
-}
         private static (PowerSupplyStatus status, bool isCharging) GetChargingStatusFromFlags(byte flags)
         {
             return (flags & 0x07) switch
             {
-                0 => (POWER_SUPPLY_STATUS_CHARGING, true),
-                1 => (POWER_SUPPLY_STATUS_FULL, true),        // Full battery still counts as charging
-                2 => (POWER_SUPPLY_STATUS_NOT_CHARGING, false),
-                _ => (POWER_SUPPLY_STATUS_UNKNOWN, false)
+                0 => (PowerSupplyStatus.Charging, true),
+                1 => (PowerSupplyStatus.Full, true),
+                2 => (PowerSupplyStatus.NotCharging, false),
+                _ => (PowerSupplyStatus.Unknown, false)
             };
         }
     }

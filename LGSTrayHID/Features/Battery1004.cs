@@ -14,15 +14,26 @@ namespace LGSTrayHID.Features
 
             int mv = -1;
             double batPercent = ret.GetParam(0);
-            var status = ret.GetParam(2) switch
+            byte statusByte = ret.GetParam(2);
+            
+            var status = statusByte switch
             {
                 0 => POWER_SUPPLY_STATUS_DISCHARGING,
                 1 or 2 => POWER_SUPPLY_STATUS_CHARGING,
                 3 => POWER_SUPPLY_STATUS_FULL,
                 _ => POWER_SUPPLY_STATUS_NOT_CHARGING,
             };
-            return new BatteryUpdateReturn(batPercent, status, mv);
-        }
 
+            // Determine charging state (status byte values 1 and 2 indicate charging)
+            bool isCharging = statusByte == 1 || statusByte == 2;
+
+            return new BatteryUpdateReturn
+            {
+                batteryPercentage = (int)batPercent,
+                status = (byte)status,
+                batteryMVolt = mv,
+                isCharging = isCharging
+            };
+        }
     }
 }

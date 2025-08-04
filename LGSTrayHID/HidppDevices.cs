@@ -116,10 +116,13 @@ namespace LGSTrayHID
 
         private async Task ProcessMessgage(byte[] buffer)
         {
+            // Check for charging state in HID++ reports (bit 7 of status byte)
+            bool isCharging = (buffer.Length > 4) && ((buffer[4] & 0x80) != 0;
+
             if ((buffer[2] == 0x41) && ((buffer[4] & 0x40) == 0))
             {
                 byte deviceIdx = buffer[1];
-                if (true || !_deviceCollection.ContainsKey(deviceIdx))
+                if (!_deviceCollection.ContainsKey(deviceIdx))
                 {
                     _deviceCollection[deviceIdx] = new(this, deviceIdx);
                     new Thread(async () =>
@@ -131,6 +134,11 @@ namespace LGSTrayHID
                         }
                         catch (Exception) { }
                     }).Start();
+                }
+                else if (isCharging)
+                {
+                    // Fast-track battery update for charging devices
+                    await _deviceCollection[deviceIdx].UpdateBattery(true);
                 }
             }
             else
@@ -238,49 +246,6 @@ namespace LGSTrayHID
             }
 
             return (ret.GetFeatureIndex() == 0x00) && (ret.GetSoftwareId() == SW_ID) && (ret.GetParam(2) == pingPayload);
-
-            //bool locked = await _semaphore.WaitAsync(100);
-            //if (!locked)
-            //{
-            //    return false;
-            //}
-
-            //try
-            //{
-            //    byte pingPayload = ++PING_PAYLOAD;
-            //    Hidpp20 buffer = new byte[7] { 0x10, deviceId, 0x00, 0x10 | SW_ID, 0x00, 0x00, pingPayload };
-            //    await _devShort.WriteAsync((byte[])buffer);
-
-            //    CancellationTokenSource cts = new();
-            //    cts.CancelAfter(timeout);
-
-            //    Hidpp20 ret;
-            //    while (!cts.IsCancellationRequested)
-            //    {
-            //        try
-            //        {
-            //            ret = await _channel.Reader.ReadAsync(cts.Token);
-
-            //            if (!ignoreHIDPP10 && (ret.GetFeatureIndex() == 0x8F))
-            //            {
-            //                // HID++ 1.0 response or timeout
-            //                break;
-            //            }
-
-            //            if ((ret.GetFeatureIndex() == 0x00) && (ret.GetSoftwareId() == SW_ID) && (ret.GetParam(2) == pingPayload))
-            //            {
-            //                return true;
-            //            }
-            //        }
-            //        catch (OperationCanceledException) { break; }
-            //    }
-
-            //    return false;
-            //}
-            //finally
-            //{
-            //    _semaphore.Release();
-            //}
         }
 
         private async Task SetUp()

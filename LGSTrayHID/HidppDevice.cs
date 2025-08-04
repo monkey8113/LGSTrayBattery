@@ -235,7 +235,7 @@ namespace LGSTrayHID
             lastBatteryReturn = batStatus;
             HidppManagerContext.Instance.SignalDeviceEvent(
                 IPCMessageType.UPDATE,
-                new UpdateMessage(Identifier, batStatus.BatteryPercentage, batStatus.Status, batStatus.BatteryMVolt, lastUpdate, batStatus.IsCharging)
+                new UpdateMessage(Identifier, batStatus.BatteryPercentage, batStatus.Status, batStatus.BatteryMVolt, lastUpdate, -1, batStatus.IsCharging)
             );
         }
     }

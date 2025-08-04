@@ -1,4 +1,4 @@
-﻿using LGSTrayPrimitives;
+using LGSTrayPrimitives;
 using LGSTrayPrimitives.MessageStructs;
 using LGSTrayHID.Features;
 using System.Text;
@@ -224,7 +224,7 @@ namespace LGSTrayHID
 
             var batStatus = ret.Value;
             lastUpdate = DateTimeOffset.Now;
-            IsCharging = batStatus.isCharging;
+            IsCharging = batStatus.IsCharging;
 
             if (!forceIpcUpdate && batStatus.HasSameState(lastBatteryReturn))
             {
@@ -235,32 +235,32 @@ namespace LGSTrayHID
             lastBatteryReturn = batStatus;
             HidppManagerContext.Instance.SignalDeviceEvent(
                 IPCMessageType.UPDATE,
-                new UpdateMessage(Identifier, batStatus.batteryPercentage, batStatus.status, batStatus.batteryMVolt, lastUpdate, batStatus.isCharging)
+                new UpdateMessage(Identifier, batStatus.BatteryPercentage, batStatus.Status, batStatus.BatteryMVolt, lastUpdate, batStatus.IsCharging)
             );
         }
     }
 
     public struct BatteryUpdateReturn
-{
-    public int BatteryPercentage { get; }
-    public PowerSupplyStatus Status { get; }
-    public int BatteryMVolt { get; }
-    public bool IsCharging { get; }
-
-    public BatteryUpdateReturn(int batteryPercentage, PowerSupplyStatus status, int batteryMVolt, bool isCharging)
     {
-        BatteryPercentage = batteryPercentage;
-        Status = status;
-        BatteryMVolt = batteryMVolt;
-        IsCharging = isCharging;
-    }
+        public int BatteryPercentage { get; }
+        public PowerSupplyStatus Status { get; }
+        public int BatteryMVolt { get; }
+        public bool IsCharging { get; }
 
-    public bool HasSameState(BatteryUpdateReturn other)
-    {
-        return BatteryPercentage == other.BatteryPercentage &&
-               Status == other.Status &&
-               BatteryMVolt == other.BatteryMVolt &&
-               IsCharging == other.IsCharging;
+        public BatteryUpdateReturn(int batteryPercentage, PowerSupplyStatus status, int batteryMVolt, bool isCharging)
+        {
+            BatteryPercentage = batteryPercentage;
+            Status = status;
+            BatteryMVolt = batteryMVolt;
+            IsCharging = isCharging;
+        }
+
+        public bool HasSameState(BatteryUpdateReturn other)
+        {
+            return BatteryPercentage == other.BatteryPercentage &&
+                   Status == other.Status &&
+                   BatteryMVolt == other.BatteryMVolt &&
+                   IsCharging == other.IsCharging;
+        }
     }
-}
 }

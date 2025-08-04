@@ -1,27 +1,19 @@
-name: On-Demand Build
+name: Manual Build
 
 on:
-  workflow_dispatch:  # Only runs when manually triggered
+  workflow_dispatch:
 
 jobs:
   build:
     runs-on: windows-latest
+
     steps:
-    - name: Checkout code
+    - name: Checkout
       uses: actions/checkout@v4
-    - name: Setup .NET 8
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.x
 
-    - name: Build and package
-      run: |
-        # Get current date for version suffix
-        $date = (Get-Date).ToString("yyyyMMdd")
-        python .\publish.py --version-suffix="-manual+$date"
-
-    - name: Upload build artifact
-      uses: actions/upload-artifact@v4  # Updated to v4
+    - uses: actions/setup-dotnet@v4
       with:
-        name: LGSTrayBattery
-        path: ./bin/Release/publish/*.zip
+        dotnet-version: 8
+
+    - name: Build project
+      run: dotnet build --configuration Release

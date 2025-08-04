@@ -22,7 +22,6 @@ namespace LGSTrayHID
 
         private HidppManagerContext()
         {
-
         }
 
         static HidppManagerContext()
@@ -134,6 +133,21 @@ namespace LGSTrayHID
                     .Select(x => x.UpdateBattery(true));
 
                 await Task.WhenAll(tasks);
+            }
+        }
+
+        public async Task CheckChargingStates()
+        {
+            foreach (var (_, hidppDevice) in _deviceMap)
+            {
+                var chargingDevices = hidppDevice.DeviceCollection
+                    .Where(x => x.Value.IsCharging)
+                    .Select(x => x.Value);
+
+                foreach (var device in chargingDevices)
+                {
+                    await device.UpdateBattery(true);
+                }
             }
         }
     }

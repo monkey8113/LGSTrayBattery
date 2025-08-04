@@ -254,4 +254,5 @@ namespace LGSTrayHID
         this.batteryMVolt = batteryMVolt;
         this.isCharging = isCharging;
     }
+    }
 }

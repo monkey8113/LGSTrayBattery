@@ -1,4 +1,4 @@
-﻿using LGSTrayPrimitives;
+using LGSTrayPrimitives;
 using static LGSTrayPrimitives.PowerSupplyStatus;
 
 namespace LGSTrayHID.Features
@@ -27,7 +27,6 @@ namespace LGSTrayHID.Features
                     return _mvLUT.Length - i;
                 }
             }
-
             return 0;
         }
 
@@ -42,25 +41,9 @@ namespace LGSTrayHID.Features
             double batPercent = LookupBatPercent(mv);
             byte flags = ret.GetParam(2);
 
-            PowerSupplyStatus status;
-            bool isCharging = false;
-            
-            if ((flags & 0x80) > 0)
-            {
-                status = (flags & 0x07) switch
-                {
-                    0 => POWER_SUPPLY_STATUS_CHARGING,
-                    1 => POWER_SUPPLY_STATUS_FULL,
-                    2 => POWER_SUPPLY_STATUS_NOT_CHARGING,
-                    _ => POWER_SUPPLY_STATUS_UNKNOWN,
-                };
-                isCharging = (flags & 0x07) == 0; // Charging when status is 0
-            }
-            else
-            {
-                status = POWER_SUPPLY_STATUS_DISCHARGING;
-                isCharging = false;
-            }
+            var (status, isCharging) = (flags & 0x80) > 0 
+                ? GetChargingStatusFromFlags(flags)
+                : (POWER_SUPPLY_STATUS_DISCHARGING, false);
 
             return new BatteryUpdateReturn
             {
@@ -68,6 +51,17 @@ namespace LGSTrayHID.Features
                 status = (byte)status,
                 batteryMVolt = mv,
                 isCharging = isCharging
+            };
+        }
+
+        private static (PowerSupplyStatus status, bool isCharging) GetChargingStatusFromFlags(byte flags)
+        {
+            return (flags & 0x07) switch
+            {
+                0 => (POWER_SUPPLY_STATUS_CHARGING, true),
+                1 => (POWER_SUPPLY_STATUS_FULL, true),        // Full battery still counts as charging
+                2 => (POWER_SUPPLY_STATUS_NOT_CHARGING, false),
+                _ => (POWER_SUPPLY_STATUS_UNKNOWN, false)
             };
         }
     }

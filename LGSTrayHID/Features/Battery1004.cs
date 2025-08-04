@@ -9,9 +9,9 @@ namespace LGSTrayHID.Features
         {
             Hidpp20 buffer = new byte[7] { 0x10, device.DeviceIdx, device.FeatureMap[0x1004], 0x10 | HidppDevices.SW_ID, 0x00, 0x00, 0x00 };
             Hidpp20 ret = await device.Parent.WriteRead20(device.Parent.DevShort, buffer);
-
+        
             if (ret.Length == 0) { return null; }
-
+        
             int mv = -1;
             double batPercent = ret.GetParam(0);
             byte statusByte = ret.GetParam(2);
@@ -24,12 +24,12 @@ namespace LGSTrayHID.Features
                 3 => (POWER_SUPPLY_STATUS_FULL, true),
                 _ => (POWER_SUPPLY_STATUS_NOT_CHARGING, false)
             };
-
+        
             return new BatteryUpdateReturn(
-                batteryPercentage: (int)batPercent,
-                status: (byte)status,
-                mvolt: mv,
-                charging: isCharging
+                (int)batPercent,
+                (byte)status,
+                mv,
+                isCharging
             );
         }
     }

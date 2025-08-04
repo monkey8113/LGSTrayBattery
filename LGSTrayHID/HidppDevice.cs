@@ -247,10 +247,11 @@ namespace LGSTrayHID
         public int batteryMVolt;
         public bool isCharging;
 
-        public bool HasSameState(BatteryUpdateReturn other) => 
-            batteryPercentage == other.batteryPercentage && 
-            status == other.status &&
-            batteryMVolt == other.batteryMVolt &&
-            isCharging == other.isCharging;
+        public BatteryUpdateReturn(int batteryPercentage, byte status, int batteryMVolt, bool isCharging)
+    {
+        this.batteryPercentage = batteryPercentage;
+        this.status = status;
+        this.batteryMVolt = batteryMVolt;
+        this.isCharging = isCharging;
     }
 }

@@ -43,7 +43,7 @@ namespace LGSTrayHID.Features
 
             var (status, isCharging) = (flags & 0x80) > 0 
                 ? GetChargingStatusFromFlags(flags)
-                : (PowerSupplyStatus.Discharging, false);
+                : (POWER_SUPPLY_STATUS_DISCHARGING, false);
 
             return new BatteryUpdateReturn(
                 (int)batPercent,
@@ -57,10 +57,10 @@ namespace LGSTrayHID.Features
         {
             return (flags & 0x07) switch
             {
-                0 => (PowerSupplyStatus.Charging, true),
-                1 => (PowerSupplyStatus.Full, true),
-                2 => (PowerSupplyStatus.NotCharging, false),
-                _ => (PowerSupplyStatus.Unknown, false)
+                0 => (POWER_SUPPLY_STATUS_CHARGING, true),
+                1 => (POWER_SUPPLY_STATUS_FULL, true),
+                2 => (POWER_SUPPLY_STATUS_NOT_CHARGING, false),
+                _ => (POWER_SUPPLY_STATUS_UNKNOWN, false)
             };
         }
     }

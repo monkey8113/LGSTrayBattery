@@ -1,4 +1,4 @@
-﻿using LGSTrayPrimitives;
+using LGSTrayPrimitives;
 using static LGSTrayPrimitives.PowerSupplyStatus;
 
 namespace LGSTrayHID.Features
@@ -16,19 +16,17 @@ namespace LGSTrayHID.Features
             double batPercent = ret.GetParam(0);
             byte statusByte = ret.GetParam(2);
             
-            var status = statusByte switch
+            var (status, isCharging) = statusByte switch
             {
-                0 => POWER_SUPPLY_STATUS_DISCHARGING,
-                1 or 2 => POWER_SUPPLY_STATUS_CHARGING,
-                3 => POWER_SUPPLY_STATUS_FULL,
-                4 => POWER_SUPPLY_STATUS_CHARGING,  // Some devices use 4 for charging
-                _ => POWER_SUPPLY_STATUS_NOT_CHARGING,
+                0 => (POWER_SUPPLY_STATUS_DISCHARGING, false),
+                1 => (POWER_SUPPLY_STATUS_CHARGING, true),
+                2 => (POWER_SUPPLY_STATUS_CHARGING, true),
+                3 => (POWER_SUPPLY_STATUS_FULL, true),     // Full is considered charging
+                4 => (POWER_SUPPLY_STATUS_CHARGING, true),  // Alternate charging code
+                _ => (POWER_SUPPLY_STATUS_NOT_CHARGING, false)
             };
 
-            // Determine charging state (status byte values 1, 2, and 4 indicate charging)
-            bool isCharging = statusByte == 1 || statusByte == 2 || statusByte == 4;
-
-            return new BatteryUpdateReturn
+            return new BatteryUpdateReturn 
             {
                 batteryPercentage = (int)batPercent,
                 status = (byte)status,

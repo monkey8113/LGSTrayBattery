@@ -26,13 +26,12 @@ namespace LGSTrayHID.Features
                 _ => (POWER_SUPPLY_STATUS_NOT_CHARGING, false)
             };
 
-            return new BatteryUpdateReturn 
-            {
-                batteryPercentage = (int)batPercent,
-                status = (byte)status,
-                batteryMVolt = mv,
-                isCharging = isCharging
-            };
+            return new BatteryUpdateReturn(
+                batteryPercentage: (int)batPercent,
+                status: (byte)status,
+                mvolt: mv,
+                charging: isCharging
+            );
         }
     }
 }

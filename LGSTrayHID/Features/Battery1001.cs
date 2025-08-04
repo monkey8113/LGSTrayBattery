@@ -43,6 +43,8 @@ namespace LGSTrayHID.Features
             byte flags = ret.GetParam(2);
 
             PowerSupplyStatus status;
+            bool isCharging = false;
+            
             if ((flags & 0x80) > 0)
             {
                 status = (flags & 0x07) switch
@@ -52,13 +54,21 @@ namespace LGSTrayHID.Features
                     2 => POWER_SUPPLY_STATUS_NOT_CHARGING,
                     _ => POWER_SUPPLY_STATUS_UNKNOWN,
                 };
+                isCharging = (flags & 0x07) == 0; // Charging when status is 0
             }
             else
             {
                 status = POWER_SUPPLY_STATUS_DISCHARGING;
+                isCharging = false;
             }
 
-            return new BatteryUpdateReturn(batPercent, status, mv);
+            return new BatteryUpdateReturn
+            {
+                batteryPercentage = (int)batPercent,
+                status = (byte)status,
+                batteryMVolt = mv,
+                isCharging = isCharging
+            };
         }
     }
 }

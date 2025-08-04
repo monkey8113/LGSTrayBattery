@@ -21,6 +21,7 @@ namespace LGSTrayHID
         public string DeviceName { get; private set; } = string.Empty;
         public int DeviceType { get; private set; } = 3;
         public string Identifier { get; private set; } = string.Empty;
+        public bool IsCharging { get; private set; }
 
         private BatteryUpdateReturn lastBatteryReturn;
         private DateTimeOffset lastUpdate = DateTimeOffset.MinValue;
@@ -223,8 +224,9 @@ namespace LGSTrayHID
 
             var batStatus = ret.Value;
             lastUpdate = DateTimeOffset.Now;
+            IsCharging = batStatus.isCharging;
 
-            if (forceIpcUpdate || (batStatus == lastBatteryReturn))
+            if (!forceIpcUpdate && batStatus.HasSameState(lastBatteryReturn))
             {
                 // Don't report if no change
                 return;
@@ -233,8 +235,22 @@ namespace LGSTrayHID
             lastBatteryReturn = batStatus;
             HidppManagerContext.Instance.SignalDeviceEvent(
                 IPCMessageType.UPDATE,
-                new UpdateMessage(Identifier, batStatus.batteryPercentage, batStatus.status, batStatus.batteryMVolt, lastUpdate)
+                new UpdateMessage(Identifier, batStatus.batteryPercentage, batStatus.status, batStatus.batteryMVolt, lastUpdate, batStatus.isCharging)
             );
         }
+    }
+
+    public struct BatteryUpdateReturn
+    {
+        public int batteryPercentage;
+        public byte status;
+        public int batteryMVolt;
+        public bool isCharging;
+
+        public bool HasSameState(BatteryUpdateReturn other) => 
+            batteryPercentage == other.batteryPercentage && 
+            status == other.status &&
+            batteryMVolt == other.batteryMVolt &&
+            isCharging == other.isCharging;
     }
 }

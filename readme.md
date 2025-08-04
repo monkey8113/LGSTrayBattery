@@ -1,3 +1,5 @@
+forked from https://github.com/andyvorld/LGSTrayBattery as the original arthor stopped updating
+
 # LGS Tray Battery
 
 A rewrite/combination of my two programs [LGSTrayBattery](https://github.com/andyvorld/LGSTrayBattery) and [LGSTrayBattery_GHUB](https://github.com/andyvorld/LGSTrayBattery_GHUB), which should allow for interaction via both the native HID and Logitech GaminG Hub websockets.

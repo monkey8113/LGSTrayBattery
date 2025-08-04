@@ -119,7 +119,7 @@ namespace LGSTrayHID
             // Check for charging state in HID++ reports (bit 7 of status byte)
             bool isCharging = (buffer.Length > 4) && ((buffer[4] & 0x80) != 0;
 
-            if ((buffer[2] == 0x41) && ((buffer[4] & 0x40) == 0))
+            if (buffer[2] == 0x41 && (buffer[4] & 0x40) == 0)
             {
                 byte deviceIdx = buffer[1];
                 if (!_deviceCollection.ContainsKey(deviceIdx))

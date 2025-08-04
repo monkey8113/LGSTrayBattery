@@ -241,18 +241,25 @@ namespace LGSTrayHID
     }
 
     public struct BatteryUpdateReturn
-    {
-        public int batteryPercentage;
-        public byte status;
-        public int batteryMVolt;
-        public bool isCharging;
+{
+    public int BatteryPercentage { get; }
+    public PowerSupplyStatus Status { get; }
+    public int BatteryMVolt { get; }
+    public bool IsCharging { get; }
 
-        public BatteryUpdateReturn(int batteryPercentage, byte status, int batteryMVolt, bool isCharging)
+    public BatteryUpdateReturn(int batteryPercentage, PowerSupplyStatus status, int batteryMVolt, bool isCharging)
     {
-        this.batteryPercentage = batteryPercentage;
-        this.status = status;
-        this.batteryMVolt = batteryMVolt;
-        this.isCharging = isCharging;
+        BatteryPercentage = batteryPercentage;
+        Status = status;
+        BatteryMVolt = batteryMVolt;
+        IsCharging = isCharging;
     }
+
+    public bool HasSameState(BatteryUpdateReturn other)
+    {
+        return BatteryPercentage == other.BatteryPercentage &&
+               Status == other.Status &&
+               BatteryMVolt == other.BatteryMVolt &&
+               IsCharging == other.IsCharging;
     }
 }

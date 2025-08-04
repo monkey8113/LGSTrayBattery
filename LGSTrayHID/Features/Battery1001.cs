@@ -45,13 +45,12 @@ namespace LGSTrayHID.Features
                 ? GetChargingStatusFromFlags(flags)
                 : (POWER_SUPPLY_STATUS_DISCHARGING, false);
 
-            return new BatteryUpdateReturn
-            {
-                batteryPercentage = (int)batPercent,
-                status = (byte)status,
-                batteryMVolt = mv,
-                isCharging = isCharging
-            };
+            return new BatteryUpdateReturn(
+                batteryPercentage: (int)batPercent,
+                status: (byte)status,
+                mvolt: mv,
+                charging: isCharging
+            );
         }
 
         private static (PowerSupplyStatus status, bool isCharging) GetChargingStatusFromFlags(byte flags)

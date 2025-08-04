@@ -28,16 +28,8 @@ namespace LGSTrayCore.Managers
             }
         }
 
-        // // TODO: override finalizer only if 'Dispose(bool disposing)' has code to free unmanaged resources
-        // ~LGSTrayHIDDaemon()
-        // {
-        //     // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
-        //     Dispose(disposing: false);
-        // }
-
         public void Dispose()
         {
-            // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
@@ -104,7 +96,6 @@ namespace LGSTrayCore.Managers
                 x =>
                 {
                     var initMessage = (InitMessage)x;
-                    //_logiDeviceCollection.OnInitMessage(initMessage);
                     _deviceEventBus.Publish(initMessage);
                 },
                 cancellationToken
@@ -115,8 +106,7 @@ namespace LGSTrayCore.Managers
                 x =>
                 {
                     var updateMessage = (UpdateMessage)x;
-                    //_logiDeviceCollection.OnUpdateMessage(updateMessage);
-                    _deviceEventBus.Publish(updateMessage);
+                    HandleDeviceUpdate(updateMessage);
                 },
                 cancellationToken
             );
@@ -136,7 +126,6 @@ namespace LGSTrayCore.Managers
                     DateTime then = DateTime.Now;
                     int ret = await DaemonLoop();
 
-                    // Daemon returns -1 on .Kill(), assume its user
                     if ((ret != -1) || (DateTime.Now - then).TotalSeconds < 20)
                     {
                         fastFailCount++;
@@ -148,19 +137,28 @@ namespace LGSTrayCore.Managers
 
                     if (fastFailCount > 3)
                     {
-                        // Notify user?
                         break;
                     }
                 }
             }, CancellationToken.None);
+        }
 
-            return;
+        private void HandleDeviceUpdate(UpdateMessage updateMessage)
+        {
+            // Prioritize charging state updates
+            if (updateMessage.IsCharging)
+            {
+                _deviceEventBus.Publish(updateMessage, priority: true);
+            }
+            else
+            {
+                _deviceEventBus.Publish(updateMessage);
+            }
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _cts.Cancel();
-
             return Task.CompletedTask;
         }
 

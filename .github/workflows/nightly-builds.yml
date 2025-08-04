@@ -1,38 +1,29 @@
-name: Nightly Builds
+name: On-Demand Build
 
 on:
-  workflow_dispatch:
+  workflow_dispatch:  # Only runs when manually triggered
 
 jobs:
   build:
     runs-on: windows-latest
 
     steps:
-    - name: Checkout
+    - name: Checkout code
       uses: actions/checkout@v3
-      with:
-        fetch-depth: 0
 
-    - uses: actions/setup-dotnet@v3
+    - name: Setup .NET 8
+      uses: actions/setup-dotnet@v3
       with:
-        dotnet-version: 8
+        dotnet-version: 8.x
 
-    - uses: actions/setup-python@v5 
-      with:
-        python-version: '3.11' 
-
-    - name: python .\publish.py
+    - name: Build and package
       run: |
-        $commit_ts=git show --no-patch --format=%at
-        $commit_ds=(([System.DateTimeOffset]::FromUnixTimeSeconds($commit_ts)).DateTime).ToString("yyyyMMdd")
-        python .\publish.py --version-suffix="-nightly+$commit_ds"
+        # Get current date for version suffix
+        $date = (Get-Date).ToString("yyyyMMdd")
+        python .\publish.py --version-suffix="-manual+$date"
 
-    - name: upload nightly build
-      env:
-        GH_TOKEN: ${{ secrets.NIGHTLY_TOKEN }}
-      run: |
-        $commit_ts=git show --no-patch --format=%at
-        $commit_ds=(([System.DateTimeOffset]::FromUnixTimeSeconds($commit_ts)).DateTime).ToString("yyyyMMdd")
-        gh release create -R "andyvorld/LGSTrayBattery-nightly" `
-          $commit_ds `
-          (get-item ./bin/Release/publish/*.zip)
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: LGSTrayBattery
+        path: ./bin/Release/publish/*.zip

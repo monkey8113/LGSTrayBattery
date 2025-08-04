@@ -18,12 +18,12 @@ namespace LGSTrayHID.Features
     
     var (status, isCharging) = statusByte switch
     {
-        0 => (PowerSupplyStatus.Discharging, false),
-        1 => (PowerSupplyStatus.Charging, true),
-        2 => (PowerSupplyStatus.Charging, true),
-        3 => (PowerSupplyStatus.Full, true),
-        4 => (PowerSupplyStatus.Charging, true),
-        _ => (PowerSupplyStatus.NotCharging, false)
+        0 => (POWER_SUPPLY_STATUS_DISCHARGING, false),
+        1 => (POWER_SUPPLY_STATUS_CHARGING, true),
+        2 => (POWER_SUPPLY_STATUS_CHARGING, true),
+        3 => (POWER_SUPPLY_STATUS_FULL, true),
+        4 => (POWER_SUPPLY_STATUS_CHARGING, true),
+        _ => (POWER_SUPPLY_STATUS_NOT_CHARGING, false)
     };
 
     return new BatteryUpdateReturn(

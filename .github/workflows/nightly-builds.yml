@@ -9,11 +9,22 @@ jobs:
 
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v3
 
-    - uses: actions/setup-dotnet@v4
+    - uses: actions/setup-dotnet@v3
       with:
         dotnet-version: 8
 
-    - name: Build project
-      run: dotnet build --configuration Release
+    - uses: actions/setup-python@v5 
+      with:
+        python-version: '3.11' 
+
+    - name: Run publish.py
+      run: |
+        python .\publish.py
+
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: LGSTrayBattery-Build
+        path: ./bin/Release/publish/**/*.*

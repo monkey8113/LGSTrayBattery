@@ -1,7 +1,10 @@
 name: Build
 
 on:
-  workflow_dispatch:  # run manually from the Actions tab
+  workflow_dispatch:  # manual run
+
+permissions:
+  contents: read
 
 jobs:
   build:
@@ -23,24 +26,37 @@ jobs:
         with:
           python-version: "3.11"
 
-      # Let publish.py handle dotnet publish (it already builds self-contained zips)
-      - name: Build & package with publish.py
+      # Build & package with publish.py (self-contained)
+      - name: Build & package
         shell: pwsh
         run: |
           $commit_ts = git show --no-patch --format=%at
           $ymd       = ([DateTimeOffset]::FromUnixTimeSeconds($commit_ts)).ToString("yyyyMMdd")
-          python .\publish.py --version-suffix local+$ymd
+
+          # Use a SemVer-safe suffix: "-local.YYYYMMDD"
+          # Pass as a single token (no spaces) to avoid argparse issues.
+          python .\publish.py --version-suffix=-local.$ymd
 
           if (-not (Test-Path .\bin\Release\publish)) {
             throw "Publish folder not created. Did publish.py fail?"
           }
 
-          $zip = Get-Item .\bin\Release\publish\*.zip -ErrorAction Stop
-          "ZIP_PATH=$($zip.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          # Pick up any zip that publish.py produced (standalone / framedep)
+          $zips = Get-ChildItem .\bin\Release\publish -Filter *.zip -Recurse
+          if ($zips.Count -eq 0) {
+            throw "No zip artifacts found under bin/Release/publish."
+          }
 
-      - name: Upload artifact
+          # Store list for the upload step
+          $paths = ($zips | ForEach-Object { $_.FullName }) -join "`n"
+          Set-Content -Path $env:GITHUB_OUTPUT -Value "paths<<EOF`n$paths`nEOF" -Encoding utf8
+
+        id: build_step
+
+      - name: Upload artifact(s)
         uses: actions/upload-artifact@v4
         with:
           name: LGSTrayBattery-build
-          path: ${{ env.ZIP_PATH }}
+          path: |
+            ${{ steps.build_step.outputs.paths }}
           if-no-files-found: error

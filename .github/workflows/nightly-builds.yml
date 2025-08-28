@@ -1,15 +1,11 @@
-name: Build (Manual)
+name: Build
 
 on:
-  workflow_dispatch:  # run from the Actions tab
+  workflow_dispatch:  # run manually from the Actions tab
 
 jobs:
   build:
     runs-on: windows-latest
-
-    env:
-      APP_PROJECT: LGSTrayUI/LGSTrayUI.csproj   # <-- change if your app .csproj lives elsewhere
-      RID: win-x64
 
     steps:
       - name: Checkout
@@ -22,35 +18,25 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      # Restore with the runtime so assets exist for net8.0(-windows)/win-x64
-      - name: Restore
-        run: dotnet restore $env:APP_PROJECT -r $env:RID
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
 
-      # Build the app project (not the .sln)
-      - name: Build (Release)
-        run: dotnet build $env:APP_PROJECT -c Release -r $env:RID --no-restore
-
-      # Publish a self-contained, single-file app (no .NET runtime needed).
-      # If you prefer framework-dependent, see note below.
-      - name: Publish
-        run: >
-          dotnet publish $env:APP_PROJECT
-          -c Release
-          -r $env:RID
-          --self-contained true
-          /p:PublishSingleFile=true
-          -o out/win-x64
-          --no-build
-
-      - name: Zip artifact
+      # Let publish.py handle dotnet publish (it already builds self-contained zips)
+      - name: Build & package with publish.py
         shell: pwsh
         run: |
-          $OutDir = Resolve-Path 'out/win-x64'
-          New-Item -ItemType Directory -Force -Path 'artifacts' | Out-Null
-          $ZipPath = Join-Path 'artifacts' 'LGSTrayBattery.zip'
-          if (Test-Path $ZipPath) { Remove-Item $ZipPath -Force }
-          Compress-Archive -Path "$OutDir\*" -DestinationPath $ZipPath
-          "ZIP_PATH=$ZipPath" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $commit_ts = git show --no-patch --format=%at
+          $ymd       = ([DateTimeOffset]::FromUnixTimeSeconds($commit_ts)).ToString("yyyyMMdd")
+          python .\publish.py --version-suffix local+$ymd
+
+          if (-not (Test-Path .\bin\Release\publish)) {
+            throw "Publish folder not created. Did publish.py fail?"
+          }
+
+          $zip = Get-Item .\bin\Release\publish\*.zip -ErrorAction Stop
+          "ZIP_PATH=$($zip.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

@@ -17,7 +17,7 @@ namespace LGSTrayHID.Features
             var status = ret.GetParam(2) switch
             {
                 0 => POWER_SUPPLY_STATUS_DISCHARGING,
-                1 or 2 => POWER_SUPPLY_STATUS_CHARGING,
+                1 or 2 or 4 => POWER_SUPPLY_STATUS_CHARGING,
                 3 => POWER_SUPPLY_STATUS_FULL,
                 _ => POWER_SUPPLY_STATUS_NOT_CHARGING,
             };

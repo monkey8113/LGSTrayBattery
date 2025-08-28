@@ -1,7 +1,7 @@
-name: Build
+name: Build (Manual)
 
 on:
-  workflow_dispatch:   # run manually from the Actions tab
+  workflow_dispatch:  # run it from the Actions tab when you want
 
 jobs:
   build:
@@ -18,20 +18,31 @@ jobs:
         with:
           dotnet-version: "8.0.x"
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
+      # Optional but helpful to fail early if restore has issues
+      - name: dotnet restore
+        run: dotnet restore
 
-      - name: Build & Package
+      - name: dotnet build (Release)
+        run: dotnet build -c Release --no-restore
+
+      # Publish a framework-dependent build into out/win-x64
+      # (If you prefer self-contained, add: -r win-x64 --self-contained true)
+      - name: dotnet publish
+        run: dotnet publish -c Release -o out/win-x64 --no-build
+
+      - name: Zip artifact
         shell: pwsh
         run: |
-          python .\publish.py --version-suffix "-local"
-          $zip = Get-Item ./bin/Release/publish/*.zip -ErrorAction Stop
-          echo "ZIP_PATH=$($zip.FullName)" | Out-File -FilePath $env:GITHUB_ENV -Append
+          $OutDir = Resolve-Path 'out/win-x64'
+          New-Item -ItemType Directory -Force -Path 'artifacts' | Out-Null
+          $ZipPath = Join-Path 'artifacts' 'LGSTrayBattery.zip'
+          if (Test-Path $ZipPath) { Remove-Item $ZipPath -Force }
+          Compress-Archive -Path "$OutDir\*" -DestinationPath $ZipPath
+          "ZIP_PATH=$ZipPath" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: LGSTrayBattery-build
           path: ${{ env.ZIP_PATH }}
+          if-no-files-found: error
